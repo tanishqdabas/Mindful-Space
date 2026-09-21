@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="MindfulSpace — your college mental wellness companion: daily check-ins, AI chat with Maya, and live support sessions.">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237dd3fc' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10Z'/%3E%3Cpath d='M2 21c0-3 1.9-5.5 5.5-6C9.5 14.5 12 13 14 12'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>MindfulSpace</title>
+  <style>
+    /* ═══════════════ DESIGN TOKENS ═══════════════ */
+    :root {
+      color-scheme: dark;
+      --bg0: #0a0f1e;
+      --bg1: #0f172a;
+      --surface1: #141d33;
+      --surface2: #1a2540;
+      --ink: #eef2f9;
+      --muted: #a9b7cf;
+      --faint: #7d8aa3;
+      --accent: #7dd3fc;
+      --accent-soft: rgba(125, 211, 252, 0.12);
+      --accent-ink: #082f49;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --error: #f87171;
+      --line: rgba(148, 163, 184, 0.16);
+      --r-sm: 10px;
+      --r-md: 14px;
+      --r-lg: 20px;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+      --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.35);
+      --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.45);
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --fast: 140ms;
+      --base: 240ms;
+      --slow: 420ms;
+      --font: "Inter", system-ui, "Segoe UI", sans-serif;
+      --header-h: 60px;
+      --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px; --s6: 24px; --s7: 32px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--bg1);
+      color: var(--ink);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    ::selection { background: rgba(125, 211, 252, 0.28); }
+    :focus { outline: none; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+    [hidden] { display: none !important; }
+    .tnum { font-variant-numeric: tabular-nums; }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+    }
+    main, section, .card { scroll-margin-top: calc(var(--header-h) + 16px); }
+
+    /* ═══════════════ AMBIENT BACKGROUND (1 of 1: dot grid + single glow) ═══════════════ */
+    .bg { position: fixed; inset: 0; z-index: -1; background: var(--bg1); overflow: hidden; }
+    .bg-dots {
+      position: absolute; inset: 0;
+      background-image: radial-gradient(rgba(148, 163, 184, 0.13) 1px, transparent 1.4px);
+      background-size: 26px 26px;
+      mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 100%);
+    }
+    .bg-glow {
+      position: absolute; top: 0; left: 0;
+      width: 480px; height: 480px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(125, 211, 252, 0.09) 0%, rgba(125, 211, 252, 0.03) 45%, transparent 70%);
+      transform: translate(-240px, -240px);
+      will-change: transform;
+    }
+
+    /* ═══════════════ HEADER (border after 8px, hide on scroll-down) ═══════════════ */
+    .site-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 40;
+      height: var(--header-h);
+      display: flex; align-items: center; gap: var(--s3);
+      padding: 0 var(--s5);
+      background: rgba(15, 23, 42, 0.78);
+      backdrop-filter: blur(12px); /* the single allowed use */
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid transparent;
+      transition: border-color var(--fast) ease-out, transform var(--base) var(--ease-out), background-color var(--fast) ease-out;
+    }
+    .site-header.is-scrolled { border-bottom-color: var(--line); }
+    .site-header.is-hidden { transform: translateY(-100%); }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.05rem; color: var(--ink); }
+    .brand:hover { text-decoration: none; }
+    .brand svg { width: 22px; height: 22px; }
+    .header-spacer { flex: 1; }
+    .header-user { font-size: 0.85rem; color: var(--muted); }
+    .icon-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 38px; height: 38px; border-radius: var(--r-sm);
+      border: 1px solid var(--line); background: var(--surface1); color: var(--ink);
+      cursor: pointer; transition: background-color var(--fast) ease-out, border-color var(--fast) ease-out;
+    }
+    .icon-btn:hover { background: var(--surface2); border-color: rgba(125, 211, 252, 0.4); }
+    .icon-btn svg { width: 18px; height: 18px; }
+    #menuBtn { display: none; }
+
+    /* ═══════════════ LOGIN ═══════════════ */
+    .login-wrap { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: var(--s5); padding-top: calc(var(--header-h) + var(--s5)); }
+    .login-card {
+      position: relative;
+      background: var(--surface1); border: 1px solid var(--line);
+      border-radius: var(--r-lg); padding: 40px; max-width: 440px; width: 100%;
+      box-shadow: var(--shadow-md); overflow: hidden;
+    }
+    .login-card::before {
+      content: ""; position: absolute; top: 0; left: var(--s5); right: var(--s5); height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+    }
+    .login-card h1 { font-size: 1.9rem; letter-spacing: -0.02em; margin-bottom: 6px; line-height: 1.2; }
+    .login-card h1 .w { display: inline-block; will-change: transform, opacity; }
+    .hero-gradient {
+      background: linear-gradient(100deg, #e0f2fe 10%, var(--accent) 45%, #c4b5fd 90%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .login-card p.sub { color: var(--muted); margin-bottom: 28px; font-size: 0.92rem; }
+    .login-card input[type="text"] { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface2); color: var(--ink); font-size: 1rem; margin-bottom: 16px; outline: none; font-family: inherit; transition: border-color var(--fast) ease-out; }
+    .login-card input:focus { border-color: var(--accent); }
+    .error { color: var(--error); font-size: 0.88rem; margin-bottom: 12px; }
+
+    /* ═══════════════ BUTTONS (one hover effect, press spring via JS, fixed width) ═══════════════ */
+    .btn {
+      position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer;
+      font-weight: 600; font-size: 0.95rem; font-family: inherit; color: white;
+      transition: background-color var(--fast) ease-out, opacity var(--fast) ease-out;
+      overflow: hidden; white-space: nowrap;
+    }
+    .btn-primary { background: #6b5b95; width: 100%; }
+    .btn-primary:hover { background: #7c6fa8; }
+    .btn-fixed { min-width: 220px; width: auto; }
+    .btn[disabled] { opacity: 0.65; cursor: wait; }
+    .btn .spinner {
+      width: 16px; height: 16px; border-radius: 50%; flex: none;
+      border: 2px solid rgba(255, 255, 255, 0.35); border-top-color: #fff;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    /* shimmer sweep — ONLY while [data-state="loading"] */
+    .btn[data-state="loading"]::after {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.22) 50%, transparent 70%);
+      transform: translateX(-100%);
+      animation: shimmer-sweep 1.4s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes shimmer-sweep { to { transform: translateX(100%); } }
+
+    /* ═══════════════ APP LAYOUT ═══════════════ */
+    .app { display: flex; min-height: 100vh; padding-top: var(--header-h); }
+    .sidebar {
+      width: 240px; flex: none; background: var(--bg0);
+      border-right: 1px solid var(--line); padding: 20px 0;
+      display: flex; flex-direction: column;
+      position: sticky; top: var(--header-h); height: calc(100vh - var(--header-h));
+    }
+    .sidebar nav a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 20px; color: var(--muted); font-size: 0.92rem;
+      transition: background-color var(--fast) ease-out, color var(--fast) ease-out;
+    }
+    .sidebar nav a svg { width: 17px; height: 17px; flex: none; }
+    .sidebar nav a:hover { background: rgba(148, 163, 184, 0.08); color: var(--ink); text-decoration: none; }
+    .sidebar nav a.active { background: var(--accent-soft); color: var(--ink); box-shadow: inset 2px 0 0 var(--accent); }
+    .sidebar .spacer { flex: 1; }
+    .sidebar .user-box { padding: 16px 20px; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); }
+    .sidebar .user-box strong { color: var(--ink); display: block; margin-bottom: 4px; }
+    .menu-backdrop {
+      position: fixed; inset: 0; z-index: 44; background: rgba(2, 6, 23, 0.6);
+      opacity: 0; transition: opacity var(--base) ease-out;
+    }
+    .menu-backdrop.is-open { opacity: 1; }
+
+    .main { flex: 1; padding: 32px; max-width: 960px; width: 100%; margin: 0 auto; }
+    .main h2 { font-size: 1.4rem; margin-bottom: 20px; letter-spacing: -0.01em; }
+    .main h2 .w { display: inline-block; will-change: transform, opacity; }
+
+    /* ═══════════════ CARDS ═══════════════ */
+    .card {
+      position: relative;
+      background: var(--surface1); border: 1px solid var(--line);
+      border-radius: var(--r-md); padding: 24px; margin-bottom: 20px;
+      box-shadow: var(--shadow-sm); overflow: hidden;
+    }
+    .card::before {
+      content: ""; position: absolute; top: 0; left: var(--s6); right: var(--s6); height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+      pointer-events: none;
+    }
+    .card h3 { font-size: 0.8rem; color: var(--muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+    label { display: block; font-size: 0.88rem; color: var(--muted); margin-bottom: 6px; }
+    input[type="text"], input[type="number"], input[type="date"], input[type="email"], textarea, select {
+      width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line);
+      background: var(--surface2); color: var(--ink); font-size: 0.92rem; font-family: inherit;
+      margin-bottom: 14px; outline: none;
+      transition: border-color var(--fast) ease-out;
+    }
+    input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+    input.is-error, textarea.is-error { border-color: var(--error); }
+    textarea { resize: vertical; min-height: 80px; }
+    select option { background: #1e293b; }
+    .field-error { color: var(--error); font-size: 0.82rem; margin: -8px 0 12px; opacity: 0; transition: opacity var(--base) ease-out; }
+    .field-error.is-open { opacity: 1; }
+    .field-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .char-count { font-size: 0.78rem; color: var(--faint); }
+    .char-count.warn { color: var(--warning); }
+    .char-count.over { color: var(--error); }
+
+    /* scroll reveal defaults (JS animates in; no-JS still visible) */
+    [data-reveal] { opacity: 1; }
+    html.js [data-reveal] { opacity: 0; }
+    html.js.no-motion [data-reveal] { opacity: 1; }
+
+    /* ═══════════════ MOOD / HABITS ═══════════════ */
+    .mood-slider { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; }
+    .mood-slider input[type="range"] { flex: 1; accent-color: var(--accent); margin-bottom: 0; }
+    .mood-val { font-size: 1.2rem; min-width: 32px; text-align: center; font-weight: 600; }
+    .habits { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .habits label { display: inline-flex; align-items: center; gap: 6px; background: var(--surface2); padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; color: var(--ink); border: 1px solid var(--line); margin-bottom: 0; transition: border-color var(--fast) ease-out, background-color var(--fast) ease-out; }
+    .habits label:hover { border-color: rgba(125, 211, 252, 0.45); }
+    .habits input { position: absolute; opacity: 0; pointer-events: none; }
+    .habits input:checked + span { color: var(--accent); }
+    .habits input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+    /* ═══════════════ SIGNATURE REVEAL: insight ═══════════════ */
+    .reserve-insight { min-height: 0; }
+    .insight {
+      background: rgba(107, 91, 149, 0.14); border: 1px solid rgba(107, 91, 149, 0.35);
+      border-radius: 12px; padding: 16px; margin-top: 12px; font-size: 0.9rem; line-height: 1.6;
+    }
+    .insight.is-reveal { will-change: transform, opacity, filter; }
+
+    /* ═══════════════ ACCORDIONS (CSS grid rows, both directions) ═══════════════ */
+    .acc { margin-bottom: 20px; }
+    .acc-btn {
+      width: 100%; display: flex; align-items: center; gap: 10px;
+      background: var(--surface1); border: 1px solid var(--line); border-radius: var(--r-md);
+      color: var(--ink); padding: 14px 18px; cursor: pointer; font-family: inherit; font-size: 0.9rem; font-weight: 600;
+      transition: border-color var(--fast) ease-out, background-color var(--fast) ease-out;
+    }
+    .acc-btn:hover { border-color: rgba(125, 211, 252, 0.4); }
+    .acc-btn .chev { margin-left: auto; transition: transform var(--base) var(--ease-out); color: var(--muted); flex: none; }
+    .acc-btn[aria-expanded="true"] .chev { transform: rotate(180deg); }
+    .acc-btn .count-pill {
+      font-size: 0.75rem; font-weight: 600; color: var(--accent);
+      background: var(--accent-soft); border-radius: 20px; padding: 1px 10px;
+    }
+    .acc-panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--base) var(--ease-out); }
+    .acc-panel.is-open { grid-template-rows: 1fr; }
+    .acc-inner { overflow: hidden; min-height: 0; }
+    .acc-body { padding-top: 12px; }
+
+    /* ═══════════════ TONE TABS (sliding indicator, arrow-key nav) ═══════════════ */
+    .tone-select { position: relative; display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 14px; }
+    .tone-select .tabs-indicator {
+      position: absolute; bottom: -2px; left: 0; height: 2px; width: 0;
+      background: var(--accent); border-radius: 2px; will-change: transform;
+    }
+    .tone-select button {
+      position: relative; padding: 8px 16px; border-radius: 20px;
+      border: 1px solid var(--line); background: var(--surface1); color: var(--muted);
+      cursor: pointer; font-size: 0.85rem; font-family: inherit;
+      transition: color var(--fast) ease-out, border-color var(--fast) ease-out, background-color var(--fast) ease-out;
+    }
+    .tone-select button:hover { color: var(--ink); border-color: rgba(125, 211, 252, 0.4); }
+    .tone-select button.active { background: #6b5b95; color: white; border-color: #6b5b95; }
+
+    /* ═══════════════ CHAT ═══════════════ */
+    .chat-box { display: flex; flex-direction: column; min-height: 420px; height: calc(100vh - 220px); max-height: 720px; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 12px 4px; display: flex; flex-direction: column; }
+    .chat-msg { margin-bottom: 12px; max-width: 80%; padding: 10px 16px; font-size: 0.92rem; line-height: 1.55; overflow-wrap: break-word; }
+    .chat-msg.user { align-self: flex-end; background: #6b5b95; color: white; border-radius: 16px 16px 4px 16px; }
+    .chat-msg.ai { align-self: flex-start; background: rgba(148, 163, 184, 0.1); border: 1px solid var(--line); border-radius: 16px 16px 16px 4px; }
+    .chat-msg.is-enter { will-change: transform, opacity; }
+    .chat-msg .retry-btn {
+      margin-top: 8px; padding: 6px 14px; font-size: 0.82rem; border-radius: 8px;
+      border: 1px solid var(--line); background: var(--surface2); color: var(--ink); cursor: pointer; font-family: inherit;
+      transition: border-color var(--fast) ease-out;
+    }
+    .chat-msg .retry-btn:hover { border-color: var(--accent); }
+    .typing { display: inline-flex; align-items: center; gap: 5px; padding: 12px 16px; }
+    .typing .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); opacity: 0.4; }
+    .typing.is-live .dot { animation: dot-pulse 1.2s ease-in-out infinite; }
+    .typing.is-live .dot:nth-child(2) { animation-delay: 0.15s; }
+    .typing.is-live .dot:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes dot-pulse { 0%, 100% { opacity: 0.35; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-2px); } }
+    .chat-input { display: flex; gap: 8px; margin-top: 12px; }
+    .chat-input input { flex: 1; margin-bottom: 0; }
+    .chat-input .btn { width: 96px; flex: none; }
+    .chat-actions { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-ghost {
+      padding: 6px 14px; font-size: 0.82rem; border-radius: 8px;
+      border: 1px solid var(--line); background: transparent; color: var(--muted);
+      cursor: pointer; font-family: inherit;
+      transition: color var(--fast) ease-out, border-color var(--fast) ease-out;
+    }
+    .btn-ghost:hover { color: var(--ink); border-color: rgba(125, 211, 252, 0.4); }
+
+    /* ═══════════════ STEPPER + PROGRESS (scaleX) ═══════════════ */
+    .stepper { list-style: none; display: flex; gap: 4px; margin-bottom: 12px; padding: 0; }
+    .stepper li { flex: 1; font-size: 0.75rem; color: var(--faint); text-align: center; padding-top: 10px; position: relative; }
+    .stepper li::before {
+      content: ""; position: absolute; top: 0; left: 12%; right: 12%; height: 3px; border-radius: 3px;
+      background: rgba(148, 163, 184, 0.18);
+    }
+    .stepper li.done { color: var(--accent); }
+    .stepper li.done::before { background: var(--accent); }
+    .stepper li.now { color: var(--ink); }
+    .stepbar { height: 3px; border-radius: 3px; background: rgba(148, 163, 184, 0.14); overflow: hidden; margin-bottom: 16px; }
+    .stepbar > span { display: block; height: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left center; }
+
+    /* ═══════════════ SUPPORTER CARDS (tilt + glare, fine-pointer only) ═══════════════ */
+    .supporter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .supporter-card {
+      position: relative;
+      background: var(--surface1); border: 1px solid var(--line);
+      border-radius: var(--r-md); padding: 16px; text-align: center; cursor: pointer;
+      font-family: inherit; color: var(--ink);
+      transition: border-color var(--fast) ease-out;
+      transform-style: preserve-3d;
+      --gx: 50%; --gy: 50%;
+    }
+    .supporter-card:hover { border-color: rgba(125, 211, 252, 0.45); }
+    .supporter-card.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+    .supporter-card .glare {
+      content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0;
+      background: radial-gradient(220px circle at var(--gx) var(--gy), rgba(125, 211, 252, 0.14), transparent 70%);
+      transition: opacity var(--fast) ease-out;
+    }
+    .supporter-card:hover .glare { opacity: 1; }
+    .supporter-card .avatar { font-size: 2rem; margin-bottom: 8px; }
+    .supporter-card .name { font-weight: 600; font-size: 0.9rem; }
+    .supporter-card .role { font-size: 0.78rem; color: var(--muted); }
+
+    /* ═══════════════ SLOTS (border beam + skeleton, transform-only) ═══════════════ */
+    .beam-frame { position: relative; }
+    @property --beam-angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+    .beam-frame.is-loading::after {
+      content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1.5px;
+      background: conic-gradient(from var(--beam-angle), transparent 0deg, transparent 250deg, var(--accent) 310deg, transparent 360deg);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude;
+      animation: beam-spin 1.6s linear infinite; pointer-events: none;
+    }
+    @keyframes beam-spin { to { --beam-angle: 360deg; } }
+    .slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 16px; min-height: 48px; }
+    .slot-btn { padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface2); color: var(--ink); cursor: pointer; font-size: 0.85rem; font-family: inherit; text-align: center; transition: background-color var(--fast) ease-out, border-color var(--fast) ease-out; }
+    .slot-btn:hover { border-color: var(--accent); }
+    .slot-btn.selected { background: #14b8a6; border-color: #14b8a6; color: #04211d; font-weight: 600; }
+    .slot-btn.unavailable { opacity: 0.4; cursor: not-allowed; }
+    .skel {
+      position: relative; overflow: hidden; height: 40px; border-radius: 10px;
+      background: rgba(148, 163, 184, 0.1); border: 1px solid var(--line);
+    }
+    .skel::after {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.09) 50%, transparent 80%);
+      transform: translateX(-100%); animation: skel-sweep 1.4s ease-in-out infinite;
+    }
+    @keyframes skel-sweep { to { transform: translateX(100%); } }
+
+    /* ═══════════════ APPOINTMENTS (FLIP-ready) ═══════════════ */
+    .appt-list { list-style: none; }
+    .appt-item {
+      background: var(--surface1); border: 1px solid var(--line); border-radius: 12px;
+      padding: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      will-change: transform, opacity;
+    }
+    .appt-info .name { font-weight: 600; }
+    .appt-info .meta { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+    .btn-sm { padding: 6px 14px; font-size: 0.82rem; border-radius: 8px; }
+    .btn-danger { background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--error); cursor: pointer; font-family: inherit; transition: background-color var(--fast) ease-out; }
+    .btn-danger:hover { background: rgba(239, 68, 68, 0.2); }
+
+    .empty { text-align: center; color: var(--faint); padding: 40px; font-size: 0.9rem; }
+    .tag { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.78rem; margin: 2px; }
+    .tag-risk-low { background: rgba(52, 211, 153, 0.14); color: var(--success); }
+    .tag-risk-moderate { background: rgba(251, 191, 36, 0.14); color: var(--warning); }
+    .tag-risk-high { background: rgba(248, 113, 113, 0.14); color: var(--error); }
+    .summary-card { background: rgba(20, 184, 166, 0.07); border: 1px solid rgba(20, 184, 166, 0.22); border-radius: 12px; padding: 16px; margin-top: 12px; }
+    .summary-card h4 { color: var(--success); font-size: 0.88rem; margin-bottom: 8px; }
+    .copy-row { margin-top: 10px; }
+
+    /* ═══════════════ TOASTS ═══════════════ */
+    #toasts { position: fixed; bottom: 20px; right: 20px; z-index: 70; display: flex; flex-direction: column; gap: 8px; max-width: min(360px, calc(100vw - 40px)); }
+    .toast {
+      background: var(--surface2); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+      border-radius: 12px; padding: 12px 16px; font-size: 0.86rem; box-shadow: var(--shadow-md);
+      will-change: transform, opacity; pointer-events: none;
+    }
+    .toast.success { border-left-color: var(--success); }
+    .toast.error { border-left-color: var(--error); }
+
+    /* ═══════════════ DIALOGS (backdrop fade, scale .96, fast exit) ═══════════════ */
+    dialog {
+      background: var(--surface1); color: var(--ink); border: 1px solid var(--line);
+      border-radius: var(--r-lg); padding: 28px; max-width: min(440px, calc(100vw - 40px));
+      box-shadow: var(--shadow-lg); font-family: inherit;
+    }
+    dialog::backdrop { background: rgba(2, 6, 23, 0.62); opacity: 0; transition: opacity var(--base) ease-out; }
+    dialog.is-open::backdrop { opacity: 1; }
+    dialog h3 { font-size: 1.05rem; margin-bottom: 8px; }
+    dialog p { font-size: 0.9rem; color: var(--muted); margin-bottom: 16px; }
+    dialog p strong { color: var(--ink); }
+    .dlg-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+    .crisis-num { display: block; font-size: 1.3rem; font-weight: 700; color: var(--ink); margin: 8px 0; }
+
+    @media (max-width: 860px) {
+      #menuBtn { display: inline-flex; }
+      .header-user { display: none; }
+      .sidebar {
+        position: fixed; top: 0; left: 0; bottom: 0; z-index: 45;
+        height: 100dvh; width: min(280px, 84vw);
+        transform: translateX(-102%);
+        transition: transform var(--slow) var(--ease-out);
+        padding-top: calc(var(--header-h) + 12px);
+      }
+      .sidebar.is-open { transform: translateX(0); }
+      .main { padding: 20px 16px 48px; }
+      .supporter-grid { grid-template-columns: 1fr 1fr; }
+      .chat-msg { max-width: 92%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+      .bg-glow { display: none; }
+      .beam-frame.is-loading::after { animation: none; opacity: 0.5; }
+      .skel::after { animation: none; transform: none; }
+      .btn[data-state="loading"]::after { animation: none; opacity: 0; }
+      .typing.is-live .dot { animation: none; opacity: 0.8; }
+      html.js [data-reveal] { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg" aria-hidden="true">
+  <div class="bg-dots"></div>
+  <div class="bg-glow" id="bgGlow"></div>
+</div>
+
+<header class="site-header" id="siteHeader">
+  <button class="icon-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar" onclick="window.toggleMenu(true)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
+  <a class="brand" href="/" aria-label="MindfulSpace home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10Z"/><path d="M2 21c0-3 1.9-5.5 5.5-6C9.5 14.5 12 13 14 12"/></svg>
+    <span>MindfulSpace</span>
+  </a>
+  <div class="header-spacer"></div>
+  {% if page != "login" %}
+  <span class="header-user">{{ username }}</span>
+  {% endif %}
+</header>
+
+{% if page == "login" %}
+<main class="login-wrap">
+  <div class="login-card" data-reveal="hero">
+    <h1 data-split><span class="hero-gradient">Welcome to MindfulSpace</span></h1>
+    <p class="sub">Your college mental wellness companion, powered by AI.</p>
+    {% if error %}
+    <div class="error" role="alert">{{ error }}</div>
+    {% endif %}
+    <form method="POST" id="loginForm">
+      <label class="sr-only" for="loginName">Your name</label>
+      <input type="text" id="loginName" name="username" placeholder="Enter your name to begin" required minlength="2" autofocus autocomplete="nickname">
+      <button type="submit" class="btn btn-primary btn-fixed" id="loginBtn" data-state="idle"><span class="btn-label">Get Started</span></button>
+    </form>
+  </div>
+</main>
+
+{% else %}
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Primary">
+    <nav>
+      <a href="/dashboard" data-nav class="{{ 'active' if active_tab == 'checkin' }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg>
+        Check-In</a>
+      <a href="/chat-page" data-nav class="{{ 'active' if active_tab == 'chat' }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.4c-1.5 0-3-.4-4.2-1L3 20l1.2-4.3a8 8 0 0 1-1.2-4.2A8.4 8.4 0 0 1 11.5 3h1A8.4 8.4 0 0 1 21 11.5Z"/></svg>
+        Chat with Maya</a>
+      <a href="/book" data-nav class="{{ 'active' if active_tab == 'book' }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Book Session</a>
+    </nav>
+    <div class="spacer"></div>
+    <div class="user-box">
+      <strong>{{ username }}</strong>
+      <a href="/logout">Sign out</a>
+    </div>
+  </aside>
+  <div class="menu-backdrop" id="menuBackdrop" hidden onclick="window.toggleMenu(false)"></div>
+
+  <main class="main" id="main">
+    {# ══════════ CHECK-IN TAB ══════════ #}
+    {% if active_tab == 'checkin' %}
+    <h2 data-split data-reveal>Daily Check-In</h2>
+
+    <div class="card" data-reveal>
+      <h3>How are you feeling?</h3>
+      <form method="POST" id="checkinForm">
+        <input type="hidden" name="action" value="submit_entry">
+        <div class="mood-slider">
+          <span aria-hidden="true">Low</span>
+          <label class="sr-only" for="moodRange">Mood from 1 to 10</label>
+          <input type="range" id="moodRange" name="mood" min="1" max="10" value="5" oninput="window.moodInput(this)">
+          <span class="mood-val tnum" id="moodVal">5</span>
+          <span aria-hidden="true">High</span>
+        </div>
+
+        <div class="field-row">
+          <label for="journalField">Journal Entry</label>
+          <span class="char-count tnum" id="journalCount">800 remaining</span>
+        </div>
+        <textarea id="journalField" name="journal" maxlength="800" placeholder="What's on your mind today?" oninput="window.journalInput(this)"></textarea>
+
+        <label>Habits</label>
+        <div class="habits">
+          <label><input type="checkbox" name="habits" value="sleep"><span>Sleep 8h</span></label>
+          <label><input type="checkbox" name="habits" value="exercise"><span>Exercise</span></label>
+          <label><input type="checkbox" name="habits" value="meditation"><span>Meditation</span></label>
+          <label><input type="checkbox" name="habits" value="social"><span>Social</span></label>
+          <label><input type="checkbox" name="habits" value="water"><span>Hydration</span></label>
+          <label><input type="checkbox" name="habits" value="study"><span>Study</span></label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-fixed" id="checkinSubmit" data-state="idle"><span class="btn-label">Submit Check-In</span></button>
+      </form>
+    </div>
+
+    <div class="reserve-insight">
+      {% if insight %}
+      <div class="insight is-reveal" id="insightCard" role="status" data-reveal="signature">
+        <strong>Sentiment:</strong> {{ insight.sentiment }} &nbsp;
+        <span class="tag tag-risk-{{ insight.risk }}">{{ insight.risk }} risk</span>
+        <p style="margin-top:8px">{{ insight.ai_message }}</p>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if last_entry %}
+    <div class="acc" data-reveal>
+      <button class="acc-btn" aria-expanded="true" aria-controls="lastPanel" onclick="window.toggleAcc(this)">
+        Last Check-In
+        <span class="count-pill tnum">Mood {{ last_entry.mood }}/10</span>
+        <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="acc-panel is-open" id="lastPanel">
+        <div class="acc-inner"><div class="acc-body">
+          <div class="card" style="margin-bottom:0">
+            <p>Mood: <strong class="tnum" data-countup="{{ last_entry.mood }}">{{ last_entry.mood }}</strong>/10 &nbsp; Sentiment: {{ last_entry.sentiment }} &nbsp;
+              <span class="tag tag-risk-{{ last_entry.risk }}">{{ last_entry.risk }}</span></p>
+            {% if last_entry.journal %}<p style="margin-top:8px;color:var(--muted)">{{ last_entry.journal }}</p>{% endif %}
+            {% if last_entry.habits %}<p style="margin-top:6px;font-size:0.85rem">Habits: {{ last_entry.habits|join(', ') }}</p>{% endif %}
+            {% if last_entry.ai_message %}<p style="margin-top:8px">{{ last_entry.ai_message }}</p>{% endif %}
+          </div>
+        </div></div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if appointments %}
+    <div class="acc" data-reveal>
+      <button class="acc-btn" aria-expanded="true" aria-controls="dashApptPanel" onclick="window.toggleAcc(this)">
+        Upcoming Sessions
+        <span class="count-pill tnum">{{ appointments|length }}</span>
+        <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="acc-panel is-open" id="dashApptPanel">
+        <div class="acc-inner"><div class="acc-body">
+          <ul class="appt-list" id="dashAppts">
+            {% for a in appointments %}
+            <li class="appt-item">
+              <div class="appt-info">
+                <span class="name">{{ a.avatar }} {{ a.name }}</span>
+                <div class="meta">{{ a.date_formatted }} at {{ a.slot }} · {{ a.session_type }} · {{ a.format }}</div>
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+        </div></div>
+      </div>
+    </div>
+    {% endif %}
+
+
+    {# ══════════ CHAT TAB ══════════ #}
+    {% elif active_tab == 'chat' %}
+    <h2 data-split data-reveal>Chat with Maya</h2>
+
+    <div class="tone-select" role="tablist" aria-label="Maya's tone" data-reveal>
+      <span class="tabs-indicator" id="toneIndicator" aria-hidden="true"></span>
+      <form method="POST" style="display:flex;gap:8px;flex-wrap:wrap" id="toneForm">
+        <input type="hidden" name="action" value="set_tone">
+        <button type="submit" role="tab" name="tone" value="motivational" data-tone class="{{ 'active' if tone=='motivational' }}" aria-selected="{{ 'true' if tone=='motivational' else 'false' }}">Motivational</button>
+        <button type="submit" role="tab" name="tone" value="constructive" data-tone class="{{ 'active' if tone=='constructive' }}" aria-selected="{{ 'true' if tone=='constructive' else 'false' }}">Constructive</button>
+        <button type="submit" role="tab" name="tone" value="soft" data-tone class="{{ 'active' if tone=='soft' }}" aria-selected="{{ 'true' if tone=='soft' else 'false' }}">Soft</button>
+        <button type="submit" role="tab" name="tone" value="strict" data-tone class="{{ 'active' if tone=='strict' }}" aria-selected="{{ 'true' if tone=='strict' else 'false' }}">Strict</button>
+      </form>
+    </div>
+
+    <div class="card chat-box" data-reveal>
+      <div class="chat-messages" id="chatMessages" aria-label="Conversation with Maya">
+        {% if last_summary %}
+        <div class="acc" style="align-self:stretch">
+          <button class="acc-btn" aria-expanded="false" aria-controls="sumPanel" onclick="window.toggleAcc(this)" style="background:rgba(20,184,166,0.07);border-color:rgba(20,184,166,0.22)">
+            Last Session Summary
+            <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="acc-panel" id="sumPanel">
+            <div class="acc-inner"><div class="acc-body">
+              <div class="summary-card" style="margin-top:0" id="summaryCard">
+                {% if last_summary.themes %}<p><strong>Themes:</strong> {{ last_summary.themes|join(', ') }}</p>{% endif %}
+                {% if last_summary.summary %}<p>{{ last_summary.summary }}</p>{% endif %}
+                <div class="copy-row">
+                  <button class="btn-ghost" id="copySummary" onclick="window.copySummary(this)">
+                    <span class="btn-label">Copy summary</span>
+                  </button>
+                </div>
+              </div>
+            </div></div>
+          </div>
+        </div>
+        {% endif %}
+
+        {% for turn in chat_history %}
+        <div class="chat-msg user">{{ turn.user }}</div>
+        <div class="chat-msg ai">{{ turn.ai }}</div>
+        {% endfor %}
+
+        <div class="chat-msg ai typing" id="typingIndicator" hidden>
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="sr-only">Maya is typing…</span>
+        </div>
+      </div>
+
+      <div class="chat-input">
+        <label class="sr-only" for="chatInput">Type your message</label>
+        <input type="text" id="chatInput" placeholder="Type your message..." autocomplete="off" onkeydown="if(event.key==='Enter')window.sendMessage()">
+        <button class="btn btn-primary" id="sendBtn" data-state="idle" onclick="window.sendMessage()"><span class="btn-label">Send</span></button>
+      </div>
+      <div class="chat-actions">
+        <button class="btn-ghost" onclick="window.clearChat()">Clear Chat</button>
+        <button class="btn-ghost" onclick="window.endSession()">End Session</button>
+      </div>
+    </div>
+
+
+    {# ══════════ BOOK TAB ══════════ #}
+    {% elif active_tab == 'book' %}
+    <h2 data-split data-reveal>Book a Session</h2>
+
+    <div class="card" data-reveal>
+      <h3>Your progress</h3>
+      <ol class="stepper" id="bookStepper" aria-label="Booking progress">
+        <li data-step="1">Supporter</li>
+        <li data-step="2">Date</li>
+        <li data-step="3">Time</li>
+        <li data-step="4">Confirm</li>
+      </ol>
+      <div class="stepbar" aria-hidden="true"><span id="stepBar"></span></div>
+
+      <h3>Choose a Supporter</h3>
+      <div class="supporter-grid" id="supporterGrid">
+        {% for sid, s in {'t1': {'avatar': '👩‍⚕️', 'name': 'Dr. Sarah Mitchell', 'role': 'Therapist'}, 't2': {'avatar': '🧑‍⚕️', 'name': 'Dr. James Okafor', 'role': 'Therapist'}, 't3': {'avatar': '👩‍⚕️', 'name': 'Dr. Priya Sharma', 'role': 'Therapist'}, 'p1': {'avatar': '🧑‍🎓', 'name': 'Leo Thompson', 'role': 'Peer Supporter'}, 'p2': {'avatar': '👩‍🎓', 'name': 'Amara Diallo', 'role': 'Peer Supporter'}, 'p3': {'avatar': '🧑‍🎓', 'name': 'Kai Nakamura', 'role': 'Peer Supporter'}}.items() %}
+        <button type="button" class="supporter-card" data-sid="{{ sid }}" aria-pressed="false" onclick="window.selectSupporter('{{ sid }}', this)">
+          <span class="glare" aria-hidden="true"></span>
+          <div class="avatar" aria-hidden="true">{{ s.avatar }}</div>
+          <div class="name">{{ s.name }}</div>
+          <div class="role">{{ s.role }}</div>
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card" data-reveal>
+      <h3>Select Date &amp; Session Type</h3>
+      <label for="bookDate">Date</label>
+      <input type="date" id="bookDate" onchange="window.fetchSlots()">
+      <div class="field-error" id="dateError">Please pick a date first.</div>
+      <label for="sessionType">Session Type</label>
+      <select id="sessionType" onchange="window.fetchSlots()">
+        <option value="solo_therapy">Solo Therapy</option>
+        <option value="peer_support_group">Peer Support Group</option>
+        <option value="crisis_checkin">Crisis Check-In</option>
+      </select>
+      <label for="formatType">Format</label>
+      <select id="formatType">
+        <option value="video">Video Call</option>
+        <option value="phone">Phone Call</option>
+        <option value="in-person">In-Person</option>
+      </select>
+    </div>
+
+    <div class="card beam-frame" id="slotsCard" hidden>
+      <h3>Available Slots</h3>
+      <div class="slot-grid" id="slotSkel" hidden aria-hidden="true">
+        <div class="skel"></div><div class="skel"></div><div class="skel"></div>
+        <div class="skel"></div><div class="skel"></div><div class="skel"></div>
+      </div>
+      <div class="slot-grid" id="slotGrid" role="listbox" aria-label="Available time slots"></div>
+      <div id="slotError" role="alert" style="color:var(--error);font-size:0.85rem"></div>
+    </div>
+
+    <div class="card" id="bookingCard" hidden>
+      <h3>Confirm Booking</h3>
+      <label for="bookNotes">Notes (optional)</label>
+      <textarea id="bookNotes" placeholder="Anything you'd like the therapist to know..."></textarea>
+      <label for="bookEmail">Email (for calendar invite)</label>
+      <input type="email" id="bookEmail" placeholder="{{ username }}@student.college.edu">
+      <div class="field-error" id="emailError">That email doesn't look complete.</div>
+      <button class="btn btn-primary btn-fixed" id="confirmBtn" data-state="idle" onclick="window.confirmBooking()"><span class="btn-label">Confirm Booking</span></button>
+    </div>
+
+    {% if appointments %}
+    <div class="card" data-reveal>
+      <h3>Your Sessions</h3>
+      <ul class="appt-list" id="bookAppts">
+        {% for a in appointments %}
+        <li class="appt-item" data-booking-id="{{ a.id }}">
+          <div class="appt-info">
+            <span class="name">{{ a.avatar }} {{ a.name }}</span>
+            <div class="meta">{{ a.date_formatted }} at {{ a.slot }} · {{ a.session_type }} · {{ a.format }}</div>
+          </div>
+          <button class="btn btn-sm btn-danger" onclick="window.cancelBooking('{{ a.id }}')">Cancel</button>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+    {% endif %}
+  </main>
+</div>
+{% endif %}
+
+<div id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<dialog id="confirmDialog" aria-labelledby="confirmTitle">
+  <h3 id="confirmTitle">Are you sure?</h3>
+  <p id="confirmDesc"></p>
+  <div class="dlg-actions">
+    <button class="btn-ghost" id="confirmCancel" value="cancel">Keep</button>
+    <button class="btn btn-primary btn-fixed" id="confirmOk" value="ok" style="min-width:140px"><span class="btn-label">Confirm</span></button>
+  </div>
+</dialog>
+
+<dialog id="noticeDialog" aria-labelledby="noticeTitle">
+  <h3 id="noticeTitle">Notice</h3>
+  <div id="noticeBody" style="font-size:0.9rem;color:var(--muted)"></div>
+  <div class="dlg-actions">
+    <button class="btn btn-primary" id="noticeOk" style="width:auto;padding:10px 28px"><span class="btn-label">OK</span></button>
+  </div>
+</dialog>
+
+<dialog id="crisisDialog" role="alertdialog" aria-labelledby="crisisTitle" aria-describedby="crisisBody">
+  <h3 id="crisisTitle">Support is available right now</h3>
+  <p id="crisisBody">What you shared sounds really heavy. You don't have to carry it alone.</p>
+  <span class="crisis-num tnum">Call or text 988 <span style="font-size:0.85rem;font-weight:400;color:var(--muted)">(US Suicide &amp; Crisis Lifeline)</span></span>
+  <p>Text <strong>HOME</strong> to <strong class="tnum">741741</strong> to reach the Crisis Text Line.</p>
+  <div class="dlg-actions">
+    <button class="btn btn-primary" id="crisisOk" style="width:auto;padding:10px 28px"><span class="btn-label">I understand</span></button>
+  </div>
+</dialog>
+
+<script type="module">
+import { animate, stagger, inView, scroll, press }
+  from "https://cdn.jsdelivr.net/npm/motion@13.4.0/+esm";
+
+document.documentElement.classList.add("js");
+
+/* ── tokens ─────────────────────────────────────────────── */
+const DUR = { fast: 140, base: 240, slow: 420 };
+const EASE = [0.16, 1, 0.3, 1];
+const SNAPPY = { type: "spring", stiffness: 400, damping: 32 };
+const SOFT = { type: "spring", stiffness: 180, damping: 22 };
+const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const FINE = window.matchMedia("(pointer: fine)").matches;
+if (REDUCED) document.documentElement.classList.add("no-motion");
+let motionOK = true;
+let tabHidden = document.hidden;
+document.addEventListener("visibilitychange", () => { tabHidden = document.hidden; });
+
+/* confirm Motion actually loaded (CDN may be blocked offline) */
+try {
+  if (typeof animate !== "function") motionOK = false;
+} catch (e) { motionOK = false; }
+if (!motionOK || REDUCED) document.documentElement.classList.add("no-motion");
+
+const okMotion = () => motionOK && !REDUCED && !tabHidden;
+function track(el) { el.style.willChange = "transform, opacity"; }
+function untrack(el) { el.style.willChange = ""; }
+
+/* ── animated show / hide (never bare display:none; exits ~65% of entrances) ── */
+function showEl(el, shift = 8) {
+  if (!el) return Promise.resolve();
+  if (el.hidden) el.hidden = false;
+  el.classList.add("is-open");
+  if (!okMotion()) { el.style.opacity = ""; el.style.transform = ""; return Promise.resolve(); }
+  track(el);
+  return animate(el, { opacity: [0, 1], transform: [`translateY(${shift}px)`, "translateY(0px)"] },
+    { duration: DUR.base / 1000, ease: EASE }).finished
+    .then(() => { el.style.opacity = ""; el.style.transform = ""; untrack(el); })
+    .catch(() => { untrack(el); });
+}
+function hideEl(el, shift = 8) {
+  if (!el || el.hidden) return Promise.resolve();
+  if (!okMotion()) { el.hidden = true; el.classList.remove("is-open"); return Promise.resolve(); }
+  track(el);
+  return animate(el, { opacity: [1, 0], transform: ["translateY(0px)", `translateY(${shift}px)`] },
+    { duration: (DUR.base * 0.65) / 1000, ease: EASE }).finished
+    .then(() => { el.hidden = true; el.classList.remove("is-open"); el.style.opacity = ""; el.style.transform = ""; untrack(el); })
+    .catch(() => { el.hidden = true; untrack(el); });
+}
+
+/* ── toasts (aria-live polite, never block clicks) ── */
+const toasts = document.getElementById("toasts");
+function toast(msg, kind = "info") {
+  if (!toasts) return;
+  const el = document.createElement("div");
+  el.className = "toast" + (kind === "success" ? " success" : kind === "error" ? " error" : "");
+  el.textContent = msg;
+  toasts.appendChild(el);
+  if (okMotion()) {
+    track(el);
+    animate(el, { opacity: [0, 1], transform: ["translateY(8px)", "translateY(0px)"] },
+      { duration: 0.18, ease: EASE }).finished.then(() => untrack(el)).catch(() => {});
+  }
+  window.setTimeout(() => {
+    if (!okMotion()) { el.remove(); return; }
+    track(el);
+    animate(el, { opacity: [1, 0], transform: ["translateY(0px)", "translateY(6px)"] },
+      { duration: 0.12, ease: EASE }).finished.then(() => el.remove()).catch(() => el.remove());
+  }, 4200);
+}
+
+/* ── dialogs (backdrop fade, scale .96, fast exit, focus restore) ── */
+let lastFocus = null;
+function openDialog(dlg) {
+  if (!dlg || dlg.open) return Promise.resolve();
+  lastFocus = document.activeElement;
+  if (typeof dlg.showModal === "function") dlg.showModal();
+  else dlg.setAttribute("open", "");
+  dlg.classList.add("is-open");
+  const first = dlg.querySelector("button, [href], input, select, textarea");
+  if (first) first.focus({ preventScroll: true });
+  if (!okMotion()) return Promise.resolve();
+  track(dlg);
+  return animate(dlg, { opacity: [0, 1], transform: ["scale(0.96) translateY(6px)", "scale(1) translateY(0px)"] },
+    { duration: DUR.slow / 1000, ease: EASE }).finished
+    .then(() => { dlg.style.opacity = ""; dlg.style.transform = ""; untrack(dlg); })
+    .catch(() => untrack(dlg));
+}
+function closeDialog(dlg) {
+  if (!dlg || !dlg.open) return Promise.resolve();
+  const done = () => {
+    dlg.close();
+    dlg.classList.remove("is-open");
+    if (lastFocus && document.contains(lastFocus)) lastFocus.focus({ preventScroll: true });
+  };
+  if (!okMotion()) { done(); return Promise.resolve(); }
+  track(dlg);
+  return animate(dlg, { opacity: [1, 0], transform: ["scale(1)", "scale(0.97)"] },
+    { duration: (DUR.slow * 0.6) / 1000, ease: EASE }).finished
+    .then(() => { dlg.style.opacity = ""; dlg.style.transform = ""; untrack(dlg); done(); })
+    .catch(() => { untrack(dlg); done(); });
+}
+["confirmDialog", "noticeDialog", "crisisDialog"].forEach((id) => {
+  const d = document.getElementById(id);
+  if (!d) return;
+  d.addEventListener("cancel", (e) => { e.preventDefault(); closeDialog(d); });
+  d.addEventListener("click", (e) => { if (e.target === d) closeDialog(d); });
+});
+function notice(title, bodyHtml) {
+  const d = document.getElementById("noticeDialog");
+  document.getElementById("noticeTitle").textContent = title;
+  document.getElementById("noticeBody").innerHTML = bodyHtml;
+  return new Promise((resolve) => {
+    const ok = document.getElementById("noticeOk");
+    const onClose = () => { ok.removeEventListener("click", onClose); closeDialog(d).then(() => resolve()); };
+    ok.addEventListener("click", onClose);
+    openDialog(d);
+  });
+}
+function askConfirm(title, desc, okLabel = "Confirm") {
+  const d = document.getElementById("confirmDialog");
+  document.getElementById("confirmTitle").textContent = title;
+  document.getElementById("confirmDesc").textContent = desc;
+  document.querySelector("#confirmOk .btn-label").textContent = okLabel;
+  return new Promise((resolve) => {
+    const ok = document.getElementById("confirmOk");
+    const cancel = document.getElementById("confirmCancel");
+    const onOk = () => { cleanup(); closeDialog(d).then(() => resolve(true)); };
+    const onCancel = () => { cleanup(); closeDialog(d).then(() => resolve(false)); };
+    const cleanup = () => { ok.removeEventListener("click", onOk); cancel.removeEventListener("click", onCancel); };
+    ok.addEventListener("click", onOk);
+    cancel.addEventListener("click", onCancel);
+    openDialog(d);
+  });
+}
+document.getElementById("noticeOk")?.addEventListener("click", () => closeDialog(document.getElementById("noticeDialog")));
+document.getElementById("crisisOk")?.addEventListener("click", () => closeDialog(document.getElementById("crisisDialog")));
+
+/* ── ambient glow follows pointer with soft spring (fine-pointer, no loops) ── */
+const glow = document.getElementById("bgGlow");
+if (glow && FINE && !REDUCED && motionOK) {
+  let controls = null;
+  window.addEventListener("pointermove", (e) => {
+    if (tabHidden) return;
+    try {
+      if (controls && typeof controls.stop === "function") controls.stop();
+      controls = animate(glow, { x: e.clientX - 240, y: e.clientY - 240 }, { ...SOFT });
+    } catch (err) {
+      glow.style.transform = `translate(${e.clientX - 240}px, ${e.clientY - 240}px)`;
+    }
+  }, { passive: true });
+}
+
+/* ── split words by hand + rise 12px / 60ms stagger, once, <500ms ── */
+document.querySelectorAll("[data-split]").forEach((el) => {
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  const texts = [];
+  while (walker.nextNode()) texts.push(walker.currentNode);
+  texts.forEach((node) => {
+    const frag = document.createDocumentFragment();
+    node.textContent.split(/(\s+)/).forEach((part) => {
+      if (!part) return;
+      if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(" ")); return; }
+      const s = document.createElement("span");
+      s.className = "w";
+      s.textContent = part;
+      frag.appendChild(s);
+    });
+    node.replaceWith(frag);
+  });
+});
+function playWordRise(scope) {
+  const words = scope.querySelectorAll("[data-split] .w");
+  if (!words.length) return;
+  if (!okMotion()) return;
+  track(scope);
+  animate(Array.from(words), { opacity: [0, 1], transform: ["translateY(12px)", "translateY(0px)"] },
+    { duration: 0.32, ease: EASE, delay: stagger(0.06) }).finished
+    .then(() => { words.forEach((w) => { w.style.opacity = ""; w.style.transform = ""; }); untrack(scope); })
+    .catch(() => untrack(scope));
+}
+
+/* ── scroll reveals (inView once, Blur Fade look) ── */
+const revealEls = Array.from(document.querySelectorAll('[data-reveal]'));
+try {
+if (okMotion() && revealEls.length && typeof inView === "function") {
+  revealEls.forEach((el) => {
+    if (el.dataset.reveal === "hero") { playWordRise(el); animate(el, { opacity: [0, 1] }, { duration: 0.3 }).finished.catch(() => {}); return; }
+    inView(el, () => {
+      if (el.dataset.reveal === "signature") {
+        track(el);
+        animate(el, { opacity: [0, 1], transform: ["translateY(12px)", "translateY(0px)"], filter: ["blur(8px)", "blur(0px)"] },
+          { duration: 0.3, ease: EASE }).finished
+          .then(() => { el.style.opacity = ""; el.style.transform = ""; el.style.filter = ""; untrack(el); })
+          .catch(() => untrack(el));
+        const cu = el.querySelector("[data-countup]");
+        if (cu) countUp(cu);
+      } else {
+        playWordRise(el);
+        animate(el, { opacity: [0, 1], transform: ["translateY(12px)", "translateY(0px)"], filter: ["blur(4px)", "blur(0px)"] },
+          { duration: DUR.base / 1000, ease: EASE }).finished
+          .then(() => { el.style.opacity = ""; el.style.transform = ""; el.style.filter = ""; })
+          .catch(() => {});
+      }
+      return false; /* once */
+    }, { margin: "-8% 0px" });
+  });
+} else {
+  revealEls.forEach((el) => { el.style.opacity = ""; });
+}
+} catch (e) {
+  /* never leave content invisible if the observer API misbehaves */
+  revealEls.forEach((el) => { el.style.opacity = ""; });
+}
+
+/* supporter grid: stagger by physical distance from first card */
+const grid = document.getElementById("supporterGrid");
+try {
+if (grid && okMotion() && typeof inView === "function") {
+  const cards = Array.from(grid.querySelectorAll(".supporter-card"));
+  inView(grid, () => {
+    const r0 = cards[0]?.getBoundingClientRect();
+    const ordered = cards
+      .map((c) => { const r = c.getBoundingClientRect(); return { c, d: Math.hypot(r.left - (r0?.left ?? 0), r.top - (r0?.top ?? 0)) }; })
+      .sort((a, b) => a.d - b.d)
+      .slice(0, 6)
+      .map((o) => o.c);
+    ordered.forEach((c) => track(c));
+    animate(ordered, { opacity: [0, 1], transform: ["translateY(12px)", "translateY(0px)"] },
+      { duration: DUR.base / 1000, ease: EASE, delay: stagger(0.055) }).finished
+      .then(() => ordered.forEach((c) => { c.style.opacity = ""; c.style.transform = ""; untrack(c); }))
+      .catch(() => ordered.forEach(untrack));
+    return false;
+  }, { margin: "-8% 0px" });
+}
+} catch (e) { /* grid stays visible without stagger — enhancement-only */ }
+
+/* ── buttons: press() springs ── */
+document.querySelectorAll(".btn").forEach((btn) => {
+  if (!motionOK || REDUCED || typeof press !== "function") return;
+  try {
+    press(btn, (el) => {
+      animate(el, { transform: ["scale(1)", "scale(0.97)"] }, { ...SNAPPY });
+      return () => animate(el, { transform: ["scale(0.97)", "scale(1)"] }, { ...SNAPPY });
+    });
+  } catch (e) { /* gestures are enhancement-only */ }
+});
+function setBtn(btn, state, label) {
+  if (!btn) return;
+  if (!btn.dataset.minw) { btn.dataset.minw = String(btn.offsetWidth); btn.style.minWidth = btn.dataset.minw + "px"; }
+  btn.dataset.state = state;
+  const lab = btn.querySelector(".btn-label");
+  let spin = btn.querySelector(".spinner");
+  if (state === "loading") {
+    btn.disabled = true;
+    if (lab && label) lab.textContent = label;
+    if (!spin) { spin = document.createElement("span"); spin.className = "spinner"; spin.setAttribute("aria-hidden", "true"); btn.prepend(spin); }
+  } else {
+    btn.disabled = state !== "idle";
+    spin?.remove();
+    if (lab && label) lab.textContent = label;
+    if (state === "idle") btn.disabled = false;
+  }
+}
+
+/* ── header: border after 8px, hide on scroll-down ── */
+const header = document.getElementById("siteHeader");
+let lastY = window.scrollY;
+function onScrollY(y) {
+  if (!header) return;
+  header.classList.toggle("is-scrolled", y > 8);
+  if (!REDUCED) {
+    if (y > lastY && y > 140) header.classList.add("is-hidden");
+    else header.classList.remove("is-hidden");
+  }
+  lastY = y;
+}
+/* native listener is the source of truth (idempotent); Motion scroll() is enhancement */
+window.addEventListener("scroll", () => onScrollY(window.scrollY), { passive: true });
+try {
+  if (!REDUCED && typeof scroll === "function") scroll((_progress, info) => { try { onScrollY(info.y.current); } catch (e) {} });
+} catch (e) { /* native listener above already covers this */ }
+
+/* ── mobile drawer ── */
+const sidebar = document.getElementById("sidebar");
+const backdrop = document.getElementById("menuBackdrop");
+const menuBtn = document.getElementById("menuBtn");
+window.toggleMenu = function (open) {
+  if (!sidebar || !backdrop) return;
+  if (open) {
+    backdrop.hidden = false;
+    requestAnimationFrame(() => backdrop.classList.add("is-open"));
+    sidebar.classList.add("is-open");
+    menuBtn?.setAttribute("aria-expanded", "true");
+    sidebar.querySelector("a")?.focus({ preventScroll: true });
+  } else {
+    backdrop.classList.remove("is-open");
+    sidebar.classList.remove("is-open");
+    menuBtn?.setAttribute("aria-expanded", "false");
+    window.setTimeout(() => { backdrop.hidden = true; }, REDUCED ? 0 : DUR.base);
+  }
+};
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && sidebar?.classList.contains("is-open")) window.toggleMenu(false);
+});
+document.querySelectorAll("[data-nav]").forEach((a) => {
+  a.addEventListener("click", () => { if (window.innerWidth <= 860) window.toggleMenu(false); });
+});
+
+/* ── accordions (CSS grid rows; JS only toggles classes + aria) ── */
+window.toggleAcc = function (btn) {
+  const panel = document.getElementById(btn.getAttribute("aria-controls"));
+  const open = btn.getAttribute("aria-expanded") === "true";
+  btn.setAttribute("aria-expanded", String(!open));
+  panel?.classList.toggle("is-open", !open);
+};
+
+/* ── mood + journal counter (spring pop near limit) ── */
+function countUp(el) {
+  const target = Math.round(parseFloat(el.dataset.countup ?? el.textContent) || 0);
+  if (!okMotion()) { el.textContent = String(target); return; }
+  const t0 = performance.now(), dur = 500;
+  const step = (t) => {
+    const p = Math.min(1, (t - t0) / dur);
+    const eased = 1 - Math.pow(1 - p, 3); /* ease-out cubic, token timing */
+    el.textContent = String(Math.round(target * eased));
+    if (p < 1 && !tabHidden) requestAnimationFrame(step);
+    else el.textContent = String(target);
+  };
+  requestAnimationFrame(step);
+}
+window.moodInput = function (input) {
+  const out = document.getElementById("moodVal");
+  if (out) {
+    out.textContent = input.value;
+    if (okMotion()) {
+      animate(out, { transform: ["scale(1)", "scale(1.18)", "scale(1)"] }, { duration: 0.24, ease: EASE }).finished.catch(() => {});
+    }
+  }
+};
+const JOURNAL_MAX = 800;
+window.journalInput = function (ta) {
+  const c = document.getElementById("journalCount");
+  if (!c) return;
+  const left = JOURNAL_MAX - ta.value.length;
+  c.textContent = left + " remaining";
+  c.classList.toggle("warn", left < 100 && left >= 20);
+  c.classList.toggle("over", left < 20);
+  if (left < 100 && okMotion()) {
+    animate(c, { transform: ["scale(1)", "scale(1.12)", "scale(1)"] }, { ...SNAPPY }).finished.catch(() => {});
+  }
+};
+
+/* ── tone tabs: sliding indicator + arrow-key nav ── */
+const toneTabs = Array.from(document.querySelectorAll("[data-tone]"));
+const toneIndicator = document.getElementById("toneIndicator");
+function moveToneIndicator(tab, instant = false) {
+  if (!toneIndicator || !tab) return;
+  const parent = toneIndicator.parentElement.getBoundingClientRect();
+  const r = tab.getBoundingClientRect();
+  const x = r.left - parent.left, w = r.width;
+  toneIndicator.style.width = w + "px";
+  if (!okMotion() || instant) { toneIndicator.style.transform = `translateX(${x}px)`; return; }
+    animate(toneIndicator, { transform: `translateX(${x}px)` }, { ...SNAPPY });
+}
+const activeTone = document.querySelector("[data-tone].active");
+if (activeTone) requestAnimationFrame(() => moveToneIndicator(activeTone, true));
+window.addEventListener("resize", () => { const a = document.querySelector("[data-tone].active"); if (a) moveToneIndicator(a, true); });
+toneTabs.forEach((tab, i) => {
+  tab.addEventListener("click", () => moveToneIndicator(tab));
+  tab.addEventListener("keydown", (e) => {
+    let n = null;
+    if (e.key === "ArrowRight") n = (i + 1) % toneTabs.length;
+    else if (e.key === "ArrowLeft") n = (i - 1 + toneTabs.length) % toneTabs.length;
+    else if (e.key === "Home") n = 0;
+    else if (e.key === "End") n = toneTabs.length - 1;
+    if (n !== null) { e.preventDefault(); toneTabs[n].focus(); toneTabs[n].click(); }
+  });
+});
+
+/* ── tilt + glare on supporter cards (fine-pointer only, ±6°) ── */
+if (FINE && !REDUCED && motionOK) {
+  document.querySelectorAll(".supporter-card").forEach((card) => {
+    let raf = 0, rx = 0, ry = 0;
+    card.addEventListener("pointermove", (e) => {
+      const r = card.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - 0.5;
+      const py = (e.clientY - r.top) / r.height - 0.5;
+      card.style.setProperty("--gx", `${(px + 0.5) * 100}%`);
+      card.style.setProperty("--gy", `${(py + 0.5) * 100}%`);
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        rx = Math.max(-6, Math.min(6, -py * 12));
+        ry = Math.max(-6, Math.min(6, px * 12));
+        card.style.transform = `perspective(600px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+      });
+    });
+    card.addEventListener("pointerleave", () => {
+      cancelAnimationFrame(raf);
+      animate(card, { transform: "perspective(600px) rotateX(0deg) rotateY(0deg)" }, { ...SOFT })
+        .finished.then(() => { card.style.transform = ""; }).catch(() => { card.style.transform = ""; });
+    });
+  });
+}
+
+/* ═════════ CHAT (IDs preserved) ═════════ */
+const chatMessages = document.getElementById("chatMessages");
+const chatInput = document.getElementById("chatInput");
+const typingIndicator = document.getElementById("typingIndicator");
+const sendBtn = document.getElementById("sendBtn");
+function scrollChat(smooth = true) {
+  if (!chatMessages) return;
+  chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: smooth && !REDUCED ? "smooth" : "auto" });
+}
+function enterMsg(el) {
+  if (!okMotion()) return;
+  el.classList.add("is-enter");
+  track(el);
+  animate(el, { opacity: [0, 1], transform: ["translateY(8px)", "translateY(0px)"] },
+    { duration: 0.18, ease: EASE }).finished
+    .then(() => { el.style.opacity = ""; el.style.transform = ""; untrack(el); el.classList.remove("is-enter"); })
+    .catch(() => untrack(el));
+}
+function setTyping(on) {
+  if (!typingIndicator) return;
+  if (on) {
+    typingIndicator.hidden = false;
+    typingIndicator.classList.add("is-live");
+    scrollChat();
+  } else {
+    typingIndicator.classList.remove("is-live");
+    typingIndicator.hidden = true;
+  }
+}
+if (chatMessages) scrollChat(false);
+
+let lastFailedMsg = null;
+window.sendMessage = async function (retryText) {
+  const msg = (retryText ?? chatInput?.value ?? "").trim();
+  if (!msg || !chatMessages) return;
+  if (chatInput) chatInput.value = "";
+  lastFailedMsg = msg;
+
+  const userDiv = document.createElement("div");
+  userDiv.className = "chat-msg user";
+  userDiv.textContent = msg;
+  chatMessages.appendChild(userDiv);
+  enterMsg(userDiv);
+
+  const aiDiv = document.createElement("div");
+  aiDiv.className = "chat-msg ai";
+  chatMessages.appendChild(aiDiv);
+  setBtn(sendBtn, "loading", "Sending");
+  setTyping(true);
+
+  try {
+    const response = await fetch("/chat/stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: msg }),
+    });
+    if (!response.ok || !response.body) throw new Error("bad response");
+    setTyping(false);
+    enterMsg(aiDiv);
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let full = "";
+    let done = false;
+    while (!done) {
+      const { done: d, value } = await reader.read();
+      if (d) break;
+      const chunk = decoder.decode(value, { stream: true });
+      for (const line of chunk.split("\n")) {
+        if (!line.startsWith("data: ")) continue;
+        const data = line.slice(6).trim();
+        if (data === "[DONE]") { done = true; break; }
+        full += data;
+        aiDiv.textContent = full;
+        scrollChat();
+      }
+    }
+    if (!full.trim()) throw new Error("empty reply");
+    lastFailedMsg = null;
+    setBtn(sendBtn, "idle", "Send");
+    window.detectDistress();
+  } catch (err) {
+    setTyping(false);
+    setBtn(sendBtn, "idle", "Send");
+    aiDiv.innerHTML = "";
+    aiDiv.append(
+      document.createTextNode("Sorry, that message didn't go through. "),
+    );
+    const retry = document.createElement("button");
+    retry.className = "retry-btn";
+    retry.textContent = "Retry";
+    retry.onclick = () => { aiDiv.remove(); userDiv.remove(); window.sendMessage(lastFailedMsg); };
+    aiDiv.appendChild(retry);
+    enterMsg(aiDiv);
+    scrollChat();
+    toast("Message failed to send. You can retry inline.", "error");
+  }
+};
+
+window.detectDistress = function () {
+  const userMsgs = Array.from(document.querySelectorAll(".chat-msg.user")).slice(-5).map((el) => el.textContent);
+  fetch("/chat/detect", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ messages: userMsgs }),
+  })
+    .then((r) => r.json())
+    .then((data) => {
+      if (data.should_intervene) {
+        if (data.message) document.getElementById("crisisBody").textContent = data.message;
+        openDialog(document.getElementById("crisisDialog"));
+      }
+    })
+    .catch(() => {});
+};
+
+window.clearChat = async function () {
+  if (!(await askConfirm("Start a fresh conversation?", "Your current messages with Maya will be cleared.", "Clear"))) return;
+  try {
+    await fetch("/chat/clear", { method: "POST" });
+    location.reload();
+  } catch (e) { toast("Couldn't clear the chat. Please try again.", "error"); }
+};
+
+window.endSession = async function () {
+  if (!(await askConfirm("End this session and get a summary?", "Maya will summarise the themes of this conversation.", "End"))) return;
+  try {
+    const r = await fetch("/chat/summarise", { method: "POST" });
+    const data = await r.json();
+    let msg = "Session ended.";
+    if (data.summary) msg += "\n\n" + data.summary;
+    if (data.themes && data.themes.length) msg += "\n\nThemes: " + data.themes.join(", ");
+    await notice("Session summary", "<p>" + msg.replace(/\n\n/g, "</p><p>").replace(/\n/g, "<br>") + "</p>");
+    location.reload();
+  } catch (e) { location.reload(); }
+};
+
+window.copySummary = async function (btn) {
+  const card = document.getElementById("summaryCard");
+  const label = btn.querySelector(".btn-label");
+  const text = card?.innerText ?? "";
+  try {
+    await navigator.clipboard.writeText(text);
+    if (label) label.textContent = "Copied ✓";
+    if (okMotion() && label) animate(label, { transform: ["scale(0.85)", "scale(1.06)", "scale(1)"] }, { ...SNAPPY }).finished.catch(() => {});
+    toast("Summary copied to clipboard.", "success");
+  } catch (e) {
+    toast("Couldn't copy. Select the text manually.", "error");
+    if (label) label.textContent = "Copy failed";
+  }
+  window.setTimeout(() => { if (label) label.textContent = "Copy summary"; }, 1500);
+};
+
+/* ═════════ BOOKING (IDs preserved) ═════════ */
+let selectedSupporter = null;
+let selectedSlot = null;
+const stepBar = document.getElementById("stepBar");
+function updateSteps() {
+  const steps = Array.from(document.querySelectorAll("#bookStepper li"));
+  if (!steps.length) return;
+  const stage =
+    selectedSlot ? 4 :
+    document.querySelectorAll("#slotGrid .slot-btn:not(.unavailable)").length ? 3 :
+    document.getElementById("bookDate")?.value ? 2 :
+    selectedSupporter ? 1 : 0;
+  steps.forEach((li) => {
+    const n = Number(li.dataset.step);
+    li.classList.toggle("done", n <= stage);
+    li.classList.toggle("now", n === stage + 1);
+  });
+  if (stepBar) {
+    const target = stage / 4;
+    if (okMotion()) animate(stepBar, { transform: `scaleX(${target})` }, { duration: DUR.base / 1000, ease: EASE });
+    else stepBar.style.transform = `scaleX(${target})`;
+  }
+}
+
+window.selectSupporter = function (id, el) {
+  selectedSupporter = id;
+  document.querySelectorAll(".supporter-card").forEach((c) => {
+    c.classList.remove("selected");
+    c.setAttribute("aria-pressed", "false");
+  });
+  el.classList.add("selected");
+  el.setAttribute("aria-pressed", "true");
+  updateSteps();
+  if (document.getElementById("bookDate")?.value) window.fetchSlots();
+};
+
+/* shared-element: supporter → slots, View Transition with 200ms fallback */
+function revealCard(card) {
+  if (!card) return Promise.resolve();
+  const show = () => showEl(card, 8);
+  if (document.startViewTransition && !REDUCED) {
+    try {
+      card.hidden = false;
+      document.startViewTransition(() => { card.classList.add("is-open"); });
+      return show();
+    } catch (e) { /* fall through */ }
+  }
+  return show();
+}
+
+window.fetchSlots = function () {
+  const dateEl = document.getElementById("bookDate");
+  const date = dateEl?.value;
+  const dateError = document.getElementById("dateError");
+  if (!selectedSupporter || !date) {
+    if (!date && dateError) dateError.classList.add("is-open");
+    return;
+  }
+  dateError?.classList.remove("is-open");
+  const sessionType = document.getElementById("sessionType").value;
+  const tzOffset = new Date().getTimezoneOffset();
+  const slotsCard = document.getElementById("slotsCard");
+  const slotGrid = document.getElementById("slotGrid");
+  const slotSkel = document.getElementById("slotSkel");
+  const slotError = document.getElementById("slotError");
+
+  selectedSlot = null;
+  hideEl(document.getElementById("bookingCard"));
+  revealCard(slotsCard);
+  slotsCard.classList.add("is-loading");
+  if (slotSkel) slotSkel.hidden = false;
+  if (slotGrid) slotGrid.innerHTML = "";
+  if (slotError) slotError.textContent = "";
+  updateSteps();
+
+  fetch("/fetch-slots", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ supporter_id: selectedSupporter, date, session_type: sessionType, tz_offset: tzOffset }),
+  })
+    .then((r) => r.json())
+    .then((data) => {
+      slotsCard.classList.remove("is-loading");
+      if (slotSkel) slotSkel.hidden = true;
+      if (data.error) { if (slotError) slotError.textContent = data.error; return; }
+      if (!data.slots || !data.slots.length) {
+        slotGrid.innerHTML = '<span style="color:var(--muted)">No slots available for this date.</span>';
+        return;
+      }
+      slotGrid.innerHTML = data.slots.map((s) =>
+        '<button type="button" role="option" class="slot-btn' + (s.available ? "" : " unavailable") + '" ' +
+        (s.available
+          ? 'onclick="window.selectSlot(this, \'' + s.start_utc + "', '" + s.end_utc + '\')" aria-selected="false">'
+          : "disabled aria-disabled=\"true\">") +
+        s.display_local + "</button>"
+      ).join("");
+      updateSteps();
+      if (okMotion()) {
+        const btns = Array.from(slotGrid.querySelectorAll(".slot-btn:not(.unavailable)")).slice(0, 6);
+        btns.forEach(track);
+        animate(btns, { opacity: [0, 1], transform: ["translateY(8px)", "translateY(0px)"] },
+          { duration: DUR.base / 1000, ease: EASE, delay: stagger(0.05) }).finished
+          .then(() => btns.forEach((b) => { b.style.opacity = ""; b.style.transform = ""; untrack(b); }))
+          .catch(() => btns.forEach(untrack));
+      }
+    })
+    .catch(() => {
+      slotsCard.classList.remove("is-loading");
+      if (slotSkel) slotSkel.hidden = true;
+      if (slotError) slotError.textContent = "Failed to fetch slots. Check your connection and try again.";
+      toast("Couldn't load time slots.", "error");
+    });
+};
+
+window.selectSlot = function (el, start, end) {
+  document.querySelectorAll(".slot-btn").forEach((b) => { b.classList.remove("selected"); b.setAttribute("aria-selected", "false"); });
+  el.classList.add("selected");
+  el.setAttribute("aria-selected", "true");
+  selectedSlot = { start_utc: start, end_utc: end };
+  updateSteps();
+  revealCard(document.getElementById("bookingCard"));
+};
+
+window.confirmBooking = function () {
+  if (!selectedSlot || !selectedSupporter) return;
+  const emailEl = document.getElementById("bookEmail");
+  const emailError = document.getElementById("emailError");
+  const email = (emailEl?.value || "").trim();
+  if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    emailEl.classList.add("is-error");
+    emailError?.classList.add("is-open");
+    toast("Please check the invite email.", "error");
+    return;
+  }
+  emailEl?.classList.remove("is-error");
+  emailError?.classList.remove("is-open");
+  const btn = document.getElementById("confirmBtn");
+  setBtn(btn, "loading", "Confirming");
+  const body = {
+    supporter_id: selectedSupporter,
+    start_utc: selectedSlot.start_utc,
+    end_utc: selectedSlot.end_utc,
+    session_type: document.getElementById("sessionType").value,
+    format_type: document.getElementById("formatType").value,
+    notes: document.getElementById("bookNotes").value,
+    user_email: email || ("{{ username }}" + "@student.college.edu"),
+  };
+  fetch("/create-booking", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+    .then((r) => r.json())
+    .then((data) => {
+      if (data.success) {
+        setBtn(btn, "idle", "Confirm Booking");
+        toast("Booking confirmed!", "success");
+        notice("Booking confirmed", "<p>Your session is booked. A calendar invite is on its way.</p>")
+          .then(() => location.reload());
+      } else {
+        setBtn(btn, "idle", "Confirm Booking");
+        toast("Booking failed: " + (data.error || "Unknown error"), "error");
+      }
+    })
+    .catch(() => {
+      setBtn(btn, "idle", "Confirm Booking");
+      toast("Booking failed. Please try again.", "error");
+    });
+};
+
+/* appointment cancel with FLIP reflow */
+window.cancelBooking = async function (id) {
+  if (!(await askConfirm("Cancel this session?", "The calendar invite will be removed.", "Cancel session"))) return;
+  const item = document.querySelector('[data-booking-id="' + id + '"]');
+  try {
+    const r = await fetch("/cancel-booking", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ booking_id: id }),
+    });
+    const data = await r.json();
+    if (!data.success) throw new Error("cancel failed");
+    toast("Session cancelled.", "success");
+    if (item && okMotion()) {
+      const list = item.parentElement;
+      const others = Array.from(list.children).filter((c) => c !== item);
+      const first = new Map(others.map((c) => [c, c.getBoundingClientRect().top]));
+      track(item);
+      await animate(item, { opacity: [1, 0], transform: ["scale(1)", "scale(0.97)"] },
+        { duration: 0.14, ease: EASE }).finished.catch(() => {});
+      item.remove();
+      others.forEach((c) => {
+        const dy = first.get(c) - c.getBoundingClientRect().top;
+        if (dy) animate(c, { transform: [`translateY(${dy}px)`, "translateY(0px)"] }, { duration: DUR.base / 1000, ease: EASE })
+          .finished.then(() => { c.style.transform = ""; }).catch(() => { c.style.transform = ""; });
+      });
+      if (!list.children.length) location.reload();
+    } else {
+      location.reload();
+    }
+  } catch (e) {
+    toast("Couldn't cancel that session.", "error");
+  }
+};
+
+/* login + checkin submit states (no lift, fixed width, shimmer only loading) */
+document.getElementById("loginForm")?.addEventListener("submit", () => setBtn(document.getElementById("loginBtn"), "loading", "Starting"));
+document.getElementById("checkinForm")?.addEventListener("submit", () => setBtn(document.getElementById("checkinSubmit"), "loading", "Reflecting"));
+
+/* booking date min = today (preserved behaviour) */
+const bookDateEl = document.getElementById("bookDate");
+if (bookDateEl && !bookDateEl.min) bookDateEl.min = new Date().toISOString().split("T")[0];
+updateSteps();
+
+/* pause looping CSS animations off-screen / hidden tab */
+if ("IntersectionObserver" in window) {
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      en.target.style.animationPlayState = en.isIntersecting && !tabHidden ? "" : "paused";
+    });
+  });
+  document.querySelectorAll(".beam-frame, .typing, .skel").forEach((el) => io.observe(el));
+}
+</script>
+</body>
+</html>
