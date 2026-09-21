@@ -1,0 +1,36 @@
+# ─────────────────────────────────────────────────────────────────
+# MindfulSpace — Python Dependencies
+# Install with: pip install -r requirements.txt
+# ─────────────────────────────────────────────────────────────────
+
+# Core web framework
+Flask==3.1.0
+
+# Environment variable loading from .env
+python-dotenv==1.0.1
+
+# HTTP client (Gemini API calls)
+requests==2.32.3
+
+# ── Google Calendar API stack ──
+# These three must be installed together
+google-auth==2.29.0                  # OAuth2 credential objects + token refresh
+google-auth-oauthlib==1.2.0          # InstalledAppFlow + Flow for OAuth2 web flow
+google-api-python-client==2.127.0    # googleapiclient.discovery.build("calendar","v3")
+
+# ── Timezone support ──
+pytz==2024.1                         # IANA timezone database (used for slot display)
+
+# ── Background job scheduler (24h session reminders) ──
+APScheduler==3.10.4                  # BackgroundScheduler — runs reminder checks hourly
+
+# ─────────────────────────────────────────────────────────────────
+# OPTIONAL — uncomment when ready
+# ─────────────────────────────────────────────────────────────────
+
+# Email notifications (replace logger stubs in calendar_engine.py)
+# sendgrid==6.11.0
+
+# Production database (replace in-memory SESSION_STORE)
+# Flask-SQLAlchemy==3.1.1
+# psycopg2-binary==2.9.9            # PostgreSQL driver
