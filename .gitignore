@@ -1,0 +1,47 @@
+# ─────────────────────────────────────────────────────────────────
+# MindfulSpace — .gitignore
+# ─────────────────────────────────────────────────────────────────
+
+# !! CRITICAL — NEVER COMMIT THESE !!
+.env
+credentials.json
+token.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDE / editors
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Distribution
+*.tar.gz
+*.whl
